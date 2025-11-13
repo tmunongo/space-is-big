@@ -1,5 +1,11 @@
 use wasm_bindgen::prelude::*;
 
+pub mod models;
+pub mod solar_system;
+pub mod traits;
+
+pub use models::{CelestialBody, CelestialBodyType, Distance};
+
 #[wasm_bindgen]
 pub fn greet(name: &str) -> String {
     format!("Hello from Rust, {}! The cosmos awaits.", name)
