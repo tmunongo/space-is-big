@@ -7,7 +7,7 @@ fn main() {
     println!("{}", "=".repeat(60));
 
     println!();
-    
+
     let earth = solar_system::earth();
     let mars = solar_system::all_bodies()
         .into_iter()
@@ -19,6 +19,12 @@ fn main() {
     println!("    {:.2e} km", earth_mars.to_km());
     println!("    {:.3} AU", earth_mars.to_au());
 
-    println!("Mars distance from Sun: {}", mars.distance_from_sun.format_distance());
-    println!("Earth distance from Sun: {}", earth.distance_from_sun.format_distance());
+    println!(
+        "Mars distance from Sun: {}",
+        mars.distance_from_sun.format_distance()
+    );
+    println!(
+        "Earth distance from Sun: {}",
+        earth.distance_from_sun.format_distance()
+    );
 }

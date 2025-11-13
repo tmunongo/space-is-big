@@ -3,6 +3,9 @@ use wasm_bindgen::prelude::*;
 pub mod models;
 pub mod solar_system;
 pub mod traits;
+pub mod wasm_exports;
+
+pub use wasm_exports::*;
 
 pub use models::{CelestialBody, CelestialBodyType, Distance};
 

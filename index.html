@@ -1,50 +1,184 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>Interspace - Space Distance Visualizer</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                max-width: 800px;
-                margin: 50px auto;
-                background: #0a0e27;
-                color: #e0e0e0;
-            }
-            h1 {
-                color: #64b5f6;
-                text-align: center;
-            }
-            #output {
-                background: #1a1f3a;
-                padding: 20px;
-                border-radius: 8px;
-                border: 1px solid #2d3561;
-                margin-top: 20px;
-            }
-        </style>
-    </head>
-    <body>
-        <h1 id="greeting">🌌 Interspace</h1>
-        <div id="output">Loading WebAssembly module...</div>
 
-        <script type="module">
-            import init, { greet, distance_earth_moon_km } from "./pkg/interspace.js";
+<head>
+    <meta charset="utf-8" />
+    <title>Interspace - Space Distance Visualizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            background: #0a0e27;
+            color: #e0e0e0;
+        }
+
+        h1 {
+            color: #64b5f6;
+            text-align: center;
+        }
+
+        .panel {
+            background: #1a1f3a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #2d3561;
+            margin-top: 20px;
+        }
+
+        .planet {
+            background: #252b4a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 3px solid #64b5f6;
+        }
+
+        .planet-name {
+            font-weight: bold;
+            color: #64b5f6;
+        }
+
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+
+        #console-output {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #58a6ff;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #output {
+            background: #1a1f3a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #2d3561;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="greeting">🌌 Interspace</h1>
+    <div class="panel">
+        <h2>Solar System Bodies</h2>
+        <div id="bodies-list">Loading...</div>
+    </div>
+    <div class="panel">
+        <h2>Test Distance Calculations</h2>
+        <button onclick="testDistances()">Calculate Earth →
+            Mars</button>
+        <button onclick="testDistances('jupiter')">Calculate
+            Earth → Jupiter</button>
+        <button onclick="testDistances('neptune')">Calculate
+            Earth → Neptune</button>
+        <div id="console-output" style="margin-top: 15px;"></div>
+    </div>
+
+    <script type="module">
+        import init, {
+            get_all_bodies,
+            distance_from_earth,
+            km_to_au,
+            au_to_light_minutes,
+            greet,
+            compare_distances
+        } from './pkg/interspace.js';
+
+        let consoleOutput = [];
+        function log(message) {
+            consoleOutput.push(message);
+            const outputEl = document.getElementById('console-output');
+            if (outputEl) {
+                outputEl.textContent = consoleOutput.join('\n');
+                outputEl.scrollTop = outputEl.scrollHeight;
+            }
+        }
+
+        window.log = log;
         
-            async function run() {
+        async function run() {
+            try {
                 await init();
-                const message = greet("Explorer");
-                const distance = distance_earth_moon_km();
                 
-                const output = `
-                    ${message}
+                window.get_all_bodies = get_all_bodies;
+                window.distance_from_earth = distance_from_earth;
+                window.km_to_au = km_to_au;
+                window.au_to_light_minutes = au_to_light_minutes;
+                window.compare_distances = compare_distances;
+                
+                log('✓ WebAssembly module loaded');
+                
+                const bodiesResult = get_all_bodies();
+                
+                // Handle Result type
+                let bodies;
+                if (bodiesResult instanceof Error) {
+                    throw bodiesResult;
+                } else if (bodiesResult && bodiesResult.ok !== undefined) {
+                    bodies = bodiesResult.ok;
+                } else {
+                    bodies = bodiesResult;
+                }
+        
+                // Display them
+                const listEl = document.getElementById('bodies-list');
 
-                    Distance from Earth to Moon: ${distance} km
-                `;
+                listEl.innerHTML = bodies.map(body => {
+                    const distAU =
+                        body.distance_from_sun.AstronomicalUnits ||
+                        (body.distance_from_sun.Kilometers
+                            / 149597870.7);
+                    return `
+                    <div class="planet">
+                    <span class="planet-name">${body.name}
+                    </span> 
+                    (${body.body_type})
+                    <br>
+                    Radius: ${body.radius_km.toLocaleString()} km | 
+                    Distance: ${distAU.toFixed(2)} AU
+                    </div>
+                    `;
+                }).join('');
 
-                document.getElementById("output").innerText = output;
+                window.testDistances = function (planet = 'mars') {
+                    try {
+                        const distKm = distance_from_earth(planet);
+                        const distAU = km_to_au(distKm);
+                        const lightMin = au_to_light_minutes(distAU);
+                        log('');
+                        log(`Distance from Earth to ${planet.toUpperCase()}:`);
+                        log(`  ${distKm.toExponential(2)} km`);
+                        log(`  ${distAU.toFixed(3)} AU`);
+                        log(`  ${lightMin.toFixed(2)} light minutes`);
+                    } catch (error) {
+                        log(`✗ Error: ${error}`);
+                    }
+                };
+            } catch (error) {
+                log(`✗ Fatal error: ${error}`);
+                console.error(error);
             }
-            run();
-        </script>
-    </body>
+        }
+        run();
+    </script>
+</body>
+
 </html>

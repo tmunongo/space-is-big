@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, Copy, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Distance {
     Kilometers(f64),
     AstronomicalUnits(f64),
@@ -23,7 +25,7 @@ impl Distance {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CelestialBodyType {
     Star,
     Planet,
@@ -31,7 +33,7 @@ pub enum CelestialBodyType {
     DwarfPlanet,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CelestialBody {
     pub name: String,
     pub body_type: CelestialBodyType,
