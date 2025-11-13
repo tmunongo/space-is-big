@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Interspace - Space Distance Visualizer</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 800px;
+                margin: 50px auto;
+                background: #0a0e27;
+                color: #e0e0e0;
+            }
+            h1 {
+                color: #64b5f6;
+                text-align: center;
+            }
+            #output {
+                background: #1a1f3a;
+                padding: 20px;
+                border-radius: 8px;
+                border: 1px solid #2d3561;
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="greeting">🌌 Interspace</h1>
+        <div id="output">Loading WebAssembly module...</div>
+
+        <script type="module">
+            import init, { greet, distance_earth_moon_km } from "./pkg/interspace.js";
+        
+            async function run() {
+                await init();
+                const message = greet("Explorer");
+                const distance = distance_earth_moon_km();
+                
+                const output = `
+                    ${message}
+
+                    Distance from Earth to Moon: ${distance} km
+                `;
+
+                document.getElementById("output").innerText = output;
+            }
+            run();
+        </script>
+    </body>
+</html>
